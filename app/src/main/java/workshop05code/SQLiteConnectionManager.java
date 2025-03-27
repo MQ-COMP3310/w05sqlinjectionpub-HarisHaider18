@@ -130,16 +130,10 @@ public class SQLiteConnectionManager {
         String sql = "INSERT INTO validWords(id,word) VALUES('" + id + "','" + word + "')";
 
         try (Connection conn = DriverManager.getConnection(databaseURL);
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1,"%" + guess + "%");
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    int total = rs.getInt("total");
-                }
-            }
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
     }
@@ -154,20 +148,17 @@ public class SQLiteConnectionManager {
         String sql = "SELECT count(id) as total FROM validWords WHERE word like'" + guess + "';";
 
         try (Connection conn = DriverManager.getConnection(databaseURL);
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+    stmt.setString(1,"%" + guess + "%");
 
-            ResultSet resultRows = stmt.executeQuery();
-            if (resultRows.next()) {
-                int result = resultRows.getInt("total");
-                return (result >= 1);
-            }
-
-            return false;
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
+    try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+            int total = rs.getInt("total");
         }
-
     }
+} catch (SQLException e) {
+    e.printStackTrace();
 }
+
+}
+

@@ -130,10 +130,16 @@ public class SQLiteConnectionManager {
         String sql = "INSERT INTO validWords(id,word) VALUES('" + id + "','" + word + "')";
 
         try (Connection conn = DriverManager.getConnection(databaseURL);
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.executeUpdate();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1,"%" + guess + "%");
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int total = rs.getInt("total");
+                }
+            }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
     }

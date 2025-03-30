@@ -64,12 +64,12 @@ public class SQLiteConnectionManager {
         try (Connection conn = DriverManager.getConnection(databaseURL)) {
             if (conn != null) {
                 DatabaseMetaData meta = conn.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created.");
+                logger.info("The driver name is " + meta.getDriverName());
+                logger.info("A new database has been created.");
 
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Error while creating new database: " + e.getMessage(), e);
         }
     }
 
@@ -81,13 +81,16 @@ public class SQLiteConnectionManager {
      */
     public boolean checkIfConnectionDefined() {
         if (databaseURL.equals("")) {
+            logger.warning("Database URL is empty.");
             return false;
         } else {
             try (Connection conn = DriverManager.getConnection(databaseURL)) {
                 if (conn != null) {
+                logger.info("Connection to the database is successful.");
                     return true;
                 }
             } catch (SQLException e) {
+                logger.log(Level.SEVERE, "Error while checking database connection: " + e.getMessage(), e);
                 System.out.println(e.getMessage());
                 return false;
             }
@@ -110,10 +113,12 @@ public class SQLiteConnectionManager {
                 stmt.execute(WORDLE_CREATE_STRING);
                 stmt.execute(VALID_WORDS_DROP_TABLE_STRING);
                 stmt.execute(VALID_WORDS_CREATE_STRING);
+                logger.info("Wordle tables created successfully.");
                 return true;
 
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
+                logger.log(Level.SEVERE, "Error while creating Wordle tables: " + e.getMessage(), e);
                 return false;
             }
         }
@@ -132,11 +137,12 @@ public class SQLiteConnectionManager {
         try (Connection conn = DriverManager.getConnection(databaseURL);
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
-            pstmt.setString(1, word);
+            pstmt.setString(2, word);
 
             pstmt.executeUpdate();
+            logger.info("Successfully added valid word: " + word);
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Error while adding valid word: " + word, e);
         }
 
     }
@@ -157,12 +163,15 @@ public class SQLiteConnectionManager {
             ResultSet resultRows = stmt.executeQuery();
             if (resultRows.next()) {
                 int total = resultRows.getInt("total");
-                return (total >= 1);
+                if (total >= 1) {
+                    logger.info("Valid word found: " + guess);
+                    return true;
+                }
             }
-
+            logger.warning("Invalid word guess: " + guess);
             return false;
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Error while checking if word is valid: " + guess, e);
             return false;
         }
     }
